@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "CLI companion for CC-Switch — quickly switch Claude Code providers",
   "bin": {
-    "ccs": "./src/cli.js"
+    "ccs": "src/cli.js"
   },
   "engines": {
     "node": ">=18"
