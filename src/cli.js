@@ -25,6 +25,7 @@ function parseArgs(argv) {
 
   let showHelp = false;
   let showList = false;
+  let noSkip = false;
   let query = null;
 
   for (const arg of ccsArgs) {
@@ -32,12 +33,14 @@ function parseArgs(argv) {
       showHelp = true;
     } else if (arg === '-l' || arg === '--list') {
       showList = true;
+    } else if (arg === '--no-skip') {
+      noSkip = true;
     } else if (!arg.startsWith('-')) {
       query = arg;
     }
   }
 
-  return { showHelp, showList, query, claudeArgs };
+  return { showHelp, showList, noSkip, query, claudeArgs };
 }
 
 // ── Help ─────────────────────────────────────────────────────────────────────
@@ -52,8 +55,9 @@ ${c.bold('USAGE')}
   ccs --list                List all configured providers
 
 ${c.bold('OPTIONS')}
-  -l, --list    List providers without launching
-  -h, --help    Show this help message
+  -l, --list      List providers without launching
+  --no-skip       Launch without --dangerously-skip-permissions
+  -h, --help      Show this help message
 
 ${c.bold('EXAMPLES')}
   ccs                   # pick from interactive menu
@@ -120,7 +124,7 @@ async function interactiveSelect(providers) {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
-  const { showHelp, showList, query, claudeArgs } = parseArgs(process.argv);
+  const { showHelp, showList, noSkip, query, claudeArgs } = parseArgs(process.argv);
 
   if (showHelp) {
     printHelp();
@@ -151,7 +155,7 @@ async function main() {
     process.exit(0);
   }
 
-  const code = await launch(selected.name, selected.config, claudeArgs);
+  const code = await launch(selected.name, selected.config, claudeArgs, { noSkip });
   process.exit(code);
 }
 

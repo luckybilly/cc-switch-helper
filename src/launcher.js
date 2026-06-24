@@ -54,14 +54,20 @@ function getClaudeCmd() {
  * @param {string} providerName - display name for log
  * @param {object} providerConfig - parsed settings_config
  * @param {string[]} extraArgs - additional args passed to claude
+ * @param {object} [opts] - options
+ * @param {boolean} [opts.noSkip] - skip --dangerously-skip-permissions flag
  * @returns {Promise<number>} exit code
  */
-function launch(providerName, providerConfig, extraArgs = []) {
+function launch(providerName, providerConfig, extraArgs = [], opts = {}) {
   const baseSettings = readSettings();
   const settingsJson = mergeSettings(baseSettings, providerConfig);
 
   const cmd = getClaudeCmd();
-  const args = ['--settings', settingsJson, '--dangerously-skip-permissions', ...extraArgs];
+  const args = ['--settings', settingsJson];
+  if (!opts.noSkip) {
+    args.push('--dangerously-skip-permissions');
+  }
+  args.push(...extraArgs);
 
   console.log(`→ Launching [${providerName}]`);
 

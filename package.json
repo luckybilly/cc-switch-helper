@@ -1,6 +1,6 @@
 {
   "name": "cc-switch-helper",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI companion for CC-Switch — quickly switch Claude Code providers",
   "bin": {
     "ccs": "src/cli.js"

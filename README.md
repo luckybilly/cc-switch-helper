@@ -1,10 +1,10 @@
 # cc-switch-helper
 
-**[中文文档](README.zh-CN.md)**
+English ｜ **[中文文档](README.zh-CN.md)**
 
-CLI companion for [CC-Switch](https://github.com/anthropics/cc-switch) — launch Claude Code with different providers in different terminal windows.
+Overcomes the **global single-config limitation** of the original [CC-Switch](https://github.com/farion1231/cc-switch), enabling per-terminal, per-window binding of different API keys and models — multiple sessions running in parallel without interference.
 
-Reads your CC-Switch provider configurations and launches `claude` with the selected provider's environment variables merged into your settings.
+> The native CC-Switch shares one global API config across all terminals — switching providers changes every window at once. This tool provides session-level isolation: one terminal on a personal key, another on a company key, running side by side with no conflicts.
 
 ## Why?
 
@@ -24,7 +24,7 @@ Each window is independent. Switch providers in one — the others stay untouche
   <img src="./demo.gif" alt="cc-switch-helper demo" width="600" />
 </p>
 
-My cc-switch settings:
+CC-Switch provider configuration panel:
 
 <p align="center">
   <img src="./cc-switch.png" alt="cc-switch settings" width="600" />
@@ -32,14 +32,16 @@ My cc-switch settings:
 
 ## Features
 
+- **Session-level config isolation** — run different API keys, providers, and models across multiple terminals/windows simultaneously, no interference
 - **Interactive menu** — arrow keys to pick a provider, no need to remember names
-- **Fuzzy match** — `ccs deep` matches "DeepSeek", `ccs zcy` matches your ZCY provider
+- **Fuzzy match** — `ccs deep` matches "DeepSeek", `ccs mini` matches "Minimax"
 - **Cross-platform** — works on macOS, Linux, and Windows (PowerShell / CMD / Git Bash)
-- **Zero config** — reads directly from your CC-Switch database
+- **Zero config** — reads directly from your CC-Switch database, compatible with existing key groups and relay configs
+- **Non-invasive** — does not modify CC-Switch source code; CC-Switch upgrades won't affect this tool
 
 ## Prerequisites
 
-1. [CC-Switch](https://github.com/anthropics/cc-switch) installed with at least one Claude provider configured
+1. [CC-Switch](https://github.com/farion1231/cc-switch) installed with at least one Claude provider configured
 2. [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI installed
 3. [Node.js](https://nodejs.org/) ≥ 18
 
@@ -57,6 +59,7 @@ This registers the `ccs` command globally.
 ccs                       # Interactive provider selection
 ccs <name>                # Fuzzy-match provider by name
 ccs <name> -- <args...>   # Pass extra arguments to claude
+ccs --no-skip             # Launch without --dangerously-skip-permissions
 ccs --list                # List all configured providers
 ccs --help                # Show help
 ```
@@ -82,6 +85,9 @@ ccs glm
 ccs zcy -- --resume
 ccs DeepSeek -- -p "hello world"
 
+# Launch without --dangerously-skip-permissions (review each permission)
+ccs zcy --no-skip
+
 # See all your configured providers
 ccs --list
 ```
@@ -106,6 +112,8 @@ alias cc=ccs
 
 The provider's environment variables **override** same-named keys in your base settings, while all other settings (permissions, hooks, plugins, etc.) are preserved.
 
+`--dangerously-skip-permissions` is a built-in Claude Code flag that skips per-action permission prompts for a smoother experience. Add `--no-skip` to restore per-action approval, useful when you want tighter permission control.
+
 ## Platform support
 
 | Platform | Shell | Status |
@@ -115,6 +123,17 @@ The provider's environment variables **override** same-named keys in your base s
 | Windows | PowerShell | ✅ |
 | Windows | CMD | ✅ |
 | Windows | Git Bash | ✅ |
+
+## FAQ
+
+Q: Does `ccs` conflict with switching providers in CC-Switch?
+>A: No. `ccs` only affects the claude process it launches — it doesn't touch the global config. You can switch providers in CC-Switch anytime without affecting running `ccs` sessions.
+
+Q: How do I know which provider a window is using?
+>A: `ccs` prints `→ Launching [provider-name]` on startup. The terminal title bar also shows it.
+
+Q: What's the difference between default and `--no-skip`?
+>A: Default includes `--dangerously-skip-permissions`, which skips Claude Code's per-action permission prompts. `--no-skip` restores per-action approval, useful for tighter security control.
 
 ## License
 
