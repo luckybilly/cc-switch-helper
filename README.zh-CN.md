@@ -1,8 +1,24 @@
 # cc-switch-helper
 
-[CC-Switch](https://github.com/anthropics/cc-switch) 的命令行小工具 — 在终端里快速切换 Claude Code 的 provider。
+**[English](README.md)**
 
-它会读取你在 CC-Switch 里配好的 provider，把对应的环境变量合并进你的 settings，然后启动 `claude`。
+[CC-Switch](https://github.com/anthropics/cc-switch) 的命令行小工具 — 让不同终端窗口用不同 provider 跑 Claude Code。
+
+它读取你在 CC-Switch 里配好的 provider，把对应的环境变量直接传给 `claude` 进程来启动。
+
+## 为什么需要这个工具？
+
+CC-Switch 管理 provider 确实方便，但切换是全局的 — 改了配置，所有 Claude Code 实例都跟着变。
+
+`ccs` 换了个思路：把 provider 配置直接传给每个 `claude` 进程，不走全局配置。这样你可以在一个窗口用 DeepSeek，另一个窗口用 GLM，同时跑，互不影响。
+
+```
+窗口 1: ccs deep     → 用 DeepSeek 的 Claude Code
+窗口 2: ccs glm      → 用 GLM 的 Claude Code
+窗口 3: ccs zcy      → 用自定义 provider 的 Claude Code
+```
+
+每个窗口独立运行，切了一个，其他窗口完全不受影响。
 
 <p align="center">
   <img src="./demo.gif" alt="cc-switch-helper demo" width="600" />

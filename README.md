@@ -1,8 +1,24 @@
 # cc-switch-helper
 
-CLI companion for [CC-Switch](https://github.com/anthropics/cc-switch) — quickly switch between Claude Code providers from the terminal.
+**[中文文档](README.zh-CN.md)**
+
+CLI companion for [CC-Switch](https://github.com/anthropics/cc-switch) — launch Claude Code with different providers in different terminal windows.
 
 Reads your CC-Switch provider configurations and launches `claude` with the selected provider's environment variables merged into your settings.
+
+## Why?
+
+CC-Switch is a great tool for managing Claude Code providers, but switching providers changes the global config — every running Claude Code instance picks up the change.
+
+`ccs` takes a different approach: it passes the provider settings directly to each `claude` process. This means you can run DeepSeek in one terminal and GLM in another, at the same time, without ever touching the global config.
+
+```
+Terminal 1: ccs deep     → Claude Code running DeepSeek
+Terminal 2: ccs glm      → Claude Code running GLM
+Terminal 3: ccs zcy      → Claude Code running your custom provider
+```
+
+Each window is independent. Switch providers in one — the others stay untouched.
 
 <p align="center">
   <img src="./demo.gif" alt="cc-switch-helper demo" width="600" />
