@@ -4,6 +4,16 @@ CLI companion for [CC-Switch](https://github.com/anthropics/cc-switch) — quick
 
 Reads your CC-Switch provider configurations and launches `claude` with the selected provider's environment variables merged into your settings.
 
+<p align="center">
+  <img src="./demo.gif" alt="cc-switch-helper demo" width="600" />
+</p>
+
+My cc-switch settings:
+
+<p align="center">
+  <img src="./cc-switch.png" alt="cc-switch settings" width="600" />
+</p>
+
 ## Features
 
 - **Interactive menu** — arrow keys to pick a provider, no need to remember names
@@ -20,7 +30,7 @@ Reads your CC-Switch provider configurations and launches `claude` with the sele
 ## Install
 
 ```bash
-npm install -g cc-switch-helper
+npm install -g luckybilly/cc-switch-helper
 ```
 
 This registers the `ccs` command globally.
@@ -40,7 +50,13 @@ ccs --help                # Show help
 ```bash
 # Pick from an interactive menu
 ccs
+```
 
+<p align="center">
+  <img src="./select.png" alt="Interactive provider selection" width="500" />
+</p>
+
+```bash
 # Launch with a specific provider (case-insensitive fuzzy match)
 ccs zcy
 ccs DeepSeek
