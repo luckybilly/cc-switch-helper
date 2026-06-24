@@ -21,13 +21,13 @@ Terminal 3: ccs zcy      → Claude Code running your custom provider
 Each window is independent. Switch providers in one — the others stay untouched.
 
 <p align="center">
-  <img src="./demo.gif" alt="cc-switch-helper demo" width="600" />
+  <img src="./demo.gif" alt="cc-switch-helper demo" />
 </p>
 
 CC-Switch provider configuration panel:
 
 <p align="center">
-  <img src="./cc-switch.png" alt="cc-switch settings" width="600" />
+  <img src="./cc-switch.png" alt="cc-switch settings" />
 </p>
 
 ## Features
