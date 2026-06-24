@@ -70,8 +70,7 @@ alias cc=ccs
 1. Reads providers from CC-Switch's SQLite database (`~/.cc-switch/cc-switch.db`)
 2. Reads your base Claude settings from `~/.claude/settings.json`
 3. Merges the selected provider's `env` and `enabledPlugins` into the base settings
-4. Writes merged settings to a temporary file
-5. Launches `claude --settings <tmpfile> --dangerously-skip-permissions`
+4. Launches `claude --settings <json> --dangerously-skip-permissions`
 
 The provider's environment variables **override** same-named keys in your base settings, while all other settings (permissions, hooks, plugins, etc.) are preserved.
 

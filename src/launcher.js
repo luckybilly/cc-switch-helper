@@ -21,59 +21,36 @@ function readSettings() {
 /**
  * Merge a provider's config into the base settings.
  * Provider env vars override same-named keys in settings.env.
- * Provider enabledPlugins are merged (union) into settings.enabledPlugins.
+ * Provider enabledPlugins are merged into settings.enabledPlugins.
  * @param {object} baseSettings - parsed settings.json
  * @param {object} providerConfig - parsed settings_config from CC-Switch
- * @returns {object} merged settings object
+ * @returns {string} merged settings as compact JSON string
  */
 function mergeSettings(baseSettings, providerConfig) {
   const merged = { ...baseSettings };
 
-  // Merge env: provider env overrides base env
   const providerEnv = providerConfig.env || {};
   merged.env = { ...(merged.env || {}), ...providerEnv };
 
-  // Merge enabledPlugins if provider defines them
   const providerPlugins = providerConfig.enabledPlugins;
   if (providerPlugins && typeof providerPlugins === 'object') {
     merged.enabledPlugins = { ...(merged.enabledPlugins || {}), ...providerPlugins };
   }
 
-  return merged;
-}
-
-/**
- * Write merged settings to a temp file, cleaned up on process exit.
- * @param {object} settingsObj
- * @returns {string} temp file path
- */
-function writeTempSettings(settingsObj) {
-  const tmpDir = path.join(os.tmpdir(), 'ccs');
-  fs.mkdirSync(tmpDir, { recursive: true });
-  const tmpFile = path.join(tmpDir, `settings-${process.pid}.json`);
-  fs.writeFileSync(tmpFile, JSON.stringify(settingsObj, null, 2), 'utf-8');
-
-  // Cleanup on exit
-  const cleanup = () => {
-    try { fs.unlinkSync(tmpFile); } catch { /* ignore */ }
-  };
-  process.on('exit', cleanup);
-  process.on('SIGINT', () => { cleanup(); process.exit(130); });
-  process.on('SIGTERM', () => { cleanup(); process.exit(143); });
-
-  return tmpFile;
+  return JSON.stringify(merged);
 }
 
 /**
  * Resolve the claude command for the current platform.
- * On Windows, npm global bins are .cmd files; on Unix they are plain executables.
+ * On Windows, npm global bins are .cmd files.
  */
 function getClaudeCmd() {
   return process.platform === 'win32' ? 'claude.cmd' : 'claude';
 }
 
 /**
- * Launch claude with merged settings.
+ * Launch claude with merged settings passed as a JSON string.
+ * claude --settings accepts either a file path or a JSON string directly.
  * @param {string} providerName - display name for log
  * @param {object} providerConfig - parsed settings_config
  * @param {string[]} extraArgs - additional args passed to claude
@@ -81,19 +58,15 @@ function getClaudeCmd() {
  */
 function launch(providerName, providerConfig, extraArgs = []) {
   const baseSettings = readSettings();
-  const merged = mergeSettings(baseSettings, providerConfig);
-  const tmpFile = writeTempSettings(merged);
+  const settingsJson = mergeSettings(baseSettings, providerConfig);
 
   const cmd = getClaudeCmd();
-  const args = ['--settings', tmpFile, '--dangerously-skip-permissions', ...extraArgs];
+  const args = ['--settings', settingsJson, '--dangerously-skip-permissions', ...extraArgs];
 
   console.log(`→ Launching [${providerName}]`);
 
   return new Promise((resolve) => {
-    // No shell needed: cmd is explicit (claude.cmd on Windows, claude on Unix)
-    const child = spawn(cmd, args, {
-      stdio: 'inherit',
-    });
+    const child = spawn(cmd, args, { stdio: 'inherit' });
 
     child.on('error', (err) => {
       console.error(`Failed to launch claude: ${err.message}`);
