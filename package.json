@@ -1,0 +1,32 @@
+{
+  "name": "cc-switch-helper",
+  "version": "0.1.0",
+  "description": "CLI companion for CC-Switch — quickly switch Claude Code providers",
+  "bin": {
+    "ccs": "./src/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "cc-switch",
+    "provider",
+    "switch"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "sql.js": "^1.11.0",
+    "prompts": "^2.4.2"
+  }
+}
