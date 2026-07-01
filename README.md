@@ -127,7 +127,9 @@ The provider's environment variables **override** same-named keys in your base s
 ## FAQ
 
 Q: Does `ccs` conflict with switching providers in CC-Switch?
->A: No. `ccs` only affects the claude process it launches — it doesn't touch the global config. You can switch providers in CC-Switch anytime without affecting running `ccs` sessions.
+>A: No. `ccs` pins the provider config (model, API key, etc.) to the process at launch, so switching the default provider can't redirect a session that's already running.
+>
+>One exception: config items added to settings.json *after* the switch get auto-loaded into the old session — to be safe, start a fresh `ccs` session after switching.
 
 Q: How do I know which provider a window is using?
 >A: `ccs` prints `→ Launching [provider-name]` on startup. The terminal title bar also shows it.
