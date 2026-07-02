@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-const { getProviders } = require('./db');
+const { getProviders, getCommonConfig } = require('./db');
 const { launch } = require('./launcher');
+const { version } = require('../package.json');
 
 // ── Colors (ANSI, works on all terminals including Windows Terminal) ──────────
 const c = {
@@ -24,6 +25,7 @@ function parseArgs(argv) {
   const claudeArgs = sepIdx >= 0 ? args.slice(sepIdx + 1) : [];
 
   let showHelp = false;
+  let showVersion = false;
   let showList = false;
   let noSkip = false;
   let query = null;
@@ -31,6 +33,8 @@ function parseArgs(argv) {
   for (const arg of ccsArgs) {
     if (arg === '-h' || arg === '--help') {
       showHelp = true;
+    } else if (arg === '-V' || arg === '--version') {
+      showVersion = true;
     } else if (arg === '-l' || arg === '--list') {
       showList = true;
     } else if (arg === '--no-skip') {
@@ -40,7 +44,7 @@ function parseArgs(argv) {
     }
   }
 
-  return { showHelp, showList, noSkip, query, claudeArgs };
+  return { showHelp, showVersion, showList, noSkip, query, claudeArgs };
 }
 
 // ── Help ─────────────────────────────────────────────────────────────────────
@@ -57,6 +61,7 @@ ${c.bold('USAGE')}
 ${c.bold('OPTIONS')}
   -l, --list      List providers without launching
   --no-skip       Launch without --dangerously-skip-permissions
+  -V, --version   Print version and exit
   -h, --help      Show this help message
 
 ${c.bold('EXAMPLES')}
@@ -124,7 +129,12 @@ async function interactiveSelect(providers) {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
-  const { showHelp, showList, noSkip, query, claudeArgs } = parseArgs(process.argv);
+  const { showHelp, showVersion, showList, noSkip, query, claudeArgs } = parseArgs(process.argv);
+
+  if (showVersion) {
+    console.log(`ccs ${version}`);
+    process.exit(0);
+  }
 
   if (showHelp) {
     printHelp();
@@ -132,8 +142,9 @@ async function main() {
   }
 
   let providers;
+  let commonConfig;
   try {
-    providers = await getProviders();
+    [providers, commonConfig] = await Promise.all([getProviders(), getCommonConfig()]);
   } catch (err) {
     console.error(c.red(err.message));
     process.exit(1);
@@ -155,7 +166,14 @@ async function main() {
     process.exit(0);
   }
 
-  const code = await launch(selected.name, selected.config, claudeArgs, { noSkip });
+  const code = await launch(
+    selected.name,
+    selected.config,
+    selected.commonConfigEnabled,
+    commonConfig,
+    claudeArgs,
+    { noSkip }
+  );
   process.exit(code);
 }
 

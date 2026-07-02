@@ -105,12 +105,11 @@ alias cc=ccs
 
 ## 工作原理
 
-1. 从 CC-Switch 的 SQLite 数据库读 provider 列表（`~/.cc-switch/cc-switch.db`）
-2. 读你的 Claude 基础配置（`~/.claude/settings.json`）
-3. 把选中 provider 的 `env` 和 `enabledPlugins` 合并进去
-4. 执行 `claude --settings <json> --dangerously-skip-permissions`
+1. 从 CC-Switch 的 SQLite 数据库读 provider 列表（`~/.cc-switch/cc-switch.db`），同时读 `settings` 表里的公共配置 `common_config_claude`（hooks、statusLine、permissions、插件等）
+2. 按 CC-Switch 切换时的同样规则拼出生效配置——当 provider 的 `meta.commonConfigEnabled` 为 true（且 common 配置非空）时执行 `json_deep_merge(provider.settings_config, common_config)`，否则直接用 provider 的 `settings_config`。这是**深度递归合并**，叶子节点冲突时**以 common_config 为准**。
+3. 执行 `claude --settings <json> --dangerously-skip-permissions`
 
-provider 的环境变量会**覆盖**基础配置里的同名项，其他设置（权限、hooks、插件等）保持不变。
+每个窗口拿到的是 CC-Switch 切到该 provider 时会写进 `~/.claude/settings.json` 的那份配置——开公共配置的 provider 带 hooks/插件/statusLine，关公共配置的（如 evol）只有纯 env。
 
 `--dangerously-skip-permissions` 是 Claude Code 的内置参数，跳过逐条权限确认让体验更顺畅。如果你希望每次操作都手动审批，加 `--no-skip` 即可跳过这个参数。
 

@@ -105,12 +105,11 @@ alias cc=ccs
 
 ## How it works
 
-1. Reads providers from CC-Switch's SQLite database (`~/.cc-switch/cc-switch.db`)
-2. Reads your base Claude settings from `~/.claude/settings.json`
-3. Merges the selected provider's `env` and `enabledPlugins` into the base settings
-4. Launches `claude --settings <json> --dangerously-skip-permissions`
+1. Reads providers from CC-Switch's SQLite database (`~/.cc-switch/cc-switch.db`), plus the shared `common_config_claude` (hooks, statusLine, permissions, plugins, …) stored in its `settings` table
+2. Builds the effective settings the same way CC-Switch does on switch — `json_deep_merge(provider.settings_config, common_config)` when the provider's `meta.commonConfigEnabled` is true (and the common config is non-empty), otherwise the provider's `settings_config` verbatim. This is a recursive deep merge; on any leaf conflict **common config wins**.
+3. Launches `claude --settings <json> --dangerously-skip-permissions`
 
-The provider's environment variables **override** same-named keys in your base settings, while all other settings (permissions, hooks, plugins, etc.) are preserved.
+Each window gets exactly what CC-Switch would write to `~/.claude/settings.json` for that provider — including hooks/plugins/statusLine when the provider shares the common config, and a bare `env` for providers that opt out.
 
 `--dangerously-skip-permissions` is a built-in Claude Code flag that skips per-action permission prompts for a smoother experience. Add `--no-skip` to restore per-action approval, useful when you want tighter permission control.
 
