@@ -61,6 +61,7 @@ ccs <name>                # Fuzzy-match provider by name
 ccs <name> -- <args...>   # Pass extra arguments to claude
 ccs --no-skip             # Launch without --dangerously-skip-permissions
 ccs --list                # List all configured providers
+ccs --version             # Print version
 ccs --help                # Show help
 ```
 

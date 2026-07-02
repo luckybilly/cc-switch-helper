@@ -61,6 +61,7 @@ ccs <name>                # 模糊匹配 provider 名称
 ccs <name> -- <args...>   # 给 claude 传额外参数
 ccs --no-skip             # 启动时不加 --dangerously-skip-permissions
 ccs --list                # 列出所有配好的 provider
+ccs --version             # 打印版本号
 ccs --help                # 看帮助
 ```
 
