@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { spawn } = require('child_process');
+const spawn = require('cross-spawn');
 
 /**
  * Resolve the claude command for the current platform.
@@ -100,6 +100,15 @@ function launch(providerName, providerConfig, commonConfigEnabled, commonConfig,
   console.log(`→ Launching [${providerName}]`);
 
   return new Promise((resolve) => {
+    // cross-spawn is a drop-in for child_process.spawn that safely handles the
+    // claude.cmd shim on Windows: it quotes args via windowsVerbatimArguments
+    // (no shell, so inline JSON quotes, spaces in paths, and `&`/`|` in
+    // user-supplied extraArgs are passed verbatim — no cmd.exe injection or
+    // path-splitting). On macOS/Linux it is a plain passthrough. This replaces
+    // the prior `shell: true` + temp-file workaround, which (a) re-mangled the
+    // inline JSON under cmd.exe, (b) split the temp path when os.tmpdir()
+    // contained a space, (c) opened a shell-injection surface via extraArgs,
+    // and (d) wrote provider secrets to disk.
     const child = spawn(cmd, args, { stdio: 'inherit' });
 
     child.on('error', (err) => {

@@ -1,6 +1,6 @@
 {
   "name": "cc-switch-helper",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "CLI companion for CC-Switch — quickly switch Claude Code providers",
   "bin": {
     "ccs": "src/cli.js"
@@ -30,7 +30,8 @@
     "url": "https://github.com/luckybilly/cc-switch-helper.git"
   },
   "dependencies": {
-    "sql.js": "^1.11.0",
-    "prompts": "^2.4.2"
+    "cross-spawn": "^7.0.6",
+    "prompts": "^2.4.2",
+    "sql.js": "^1.11.0"
   }
 }
