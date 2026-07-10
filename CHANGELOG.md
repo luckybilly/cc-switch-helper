@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-07-10
+
+### Fixed
+
+- **`ccs` now launches claude on Windows.** Launching any provider on Windows
+  crashed synchronously with `Error: spawn EINVAL` (errno -4071) at `launcher.js`.
+  Root cause: on Windows the `claude` global bin is a `.cmd` shim, and Node
+  (>=18.20.2 / 20.12.2 / 21.7.3, per CVE-2024-27980) refuses to spawn `.cmd` /
+  `.bat` files without a shell. The spawn is now performed via `cross-spawn`,
+  which safely invokes the `.cmd` shim with proper argument quoting
+  (`windowsVerbatimArguments`) — no shell, so inline JSON quotes, spaces in the
+  settings path, and `&`/`|` in user-supplied `--` args are passed verbatim. This
+  also avoids writing provider settings (which may carry API keys) to a temp file.
+
+### Changed
+
+- Added `cross-spawn` as a runtime dependency.
+
 ## [0.3.0] - 2026-07-01
 
 ### Changed
