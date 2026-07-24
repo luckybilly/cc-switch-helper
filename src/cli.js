@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 
-const { getProviders, getCommonConfig } = require('./db');
+const {
+  getProviders,
+  getCommonConfig,
+  getProxyConfig,
+  getClaudeSettings,
+} = require('./db');
 const { launch } = require('./launcher');
 const { version } = require('../package.json');
 
@@ -143,8 +148,15 @@ async function main() {
 
   let providers;
   let commonConfig;
+  let proxyConfig;
+  let routeSettings;
   try {
-    [providers, commonConfig] = await Promise.all([getProviders(), getCommonConfig()]);
+    [providers, commonConfig, proxyConfig] = await Promise.all([
+      getProviders(),
+      getCommonConfig(),
+      getProxyConfig(),
+    ]);
+    routeSettings = getClaudeSettings();
   } catch (err) {
     console.error(c.red(err.message));
     process.exit(1);
@@ -172,7 +184,7 @@ async function main() {
     selected.commonConfigEnabled,
     commonConfig,
     claudeArgs,
-    { noSkip }
+    { noSkip, proxyConfig, routeSettings }
   );
   process.exit(code);
 }

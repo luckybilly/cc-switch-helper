@@ -36,7 +36,7 @@ CC-Switch provider configuration panel:
 - **Interactive menu** — arrow keys to pick a provider, no need to remember names
 - **Fuzzy match** — `ccs deep` matches "DeepSeek", `ccs mini` matches "Minimax"
 - **Cross-platform** — works on macOS, Linux, and Windows (PowerShell / CMD / Git Bash)
-- **Zero config** — reads directly from your CC-Switch database, compatible with existing key groups and relay configs
+- **Zero config** — reads directly from your CC-Switch database, compatible with existing key groups, relay configs, and proxy routing
 - **Non-invasive** — does not modify CC-Switch source code; CC-Switch upgrades won't affect this tool
 
 ## Prerequisites
@@ -108,7 +108,8 @@ alias cc=ccs
 
 1. Reads providers from CC-Switch's SQLite database (`~/.cc-switch/cc-switch.db`), plus the shared `common_config_claude` (hooks, statusLine, permissions, plugins, …) stored in its `settings` table
 2. Builds the effective settings the same way CC-Switch does on switch — `json_deep_merge(provider.settings_config, common_config)` when the provider's `meta.commonConfigEnabled` is true (and the common config is non-empty), otherwise the provider's `settings_config` verbatim. This is a recursive deep merge; on any leaf conflict **common config wins**.
-3. Launches `claude --settings <json> --dangerously-skip-permissions`
+3. When CC-Switch proxy routing is enabled for Claude and `~/.claude/settings.json` points at that local proxy, reuses the proxy-related Anthropic env values from the global settings so the new process goes through the same CC-Switch route as plain `claude`.
+4. Launches `claude --settings <json> --dangerously-skip-permissions`
 
 Each window gets exactly what CC-Switch would write to `~/.claude/settings.json` for that provider — including hooks/plugins/statusLine when the provider shares the common config, and a bare `env` for providers that opt out.
 
@@ -128,6 +129,8 @@ Each window gets exactly what CC-Switch would write to `~/.claude/settings.json`
 
 Q: Does `ccs` conflict with switching providers in CC-Switch?
 >A: No. `ccs` pins the provider config (model, API key, etc.) to the process at launch, so switching the default provider can't redirect a session that's already running.
+>
+>When CC-Switch proxy routing is enabled, `ccs` pins the selected provider's non-routing settings but keeps the Anthropic env values pointed at the local CC-Switch proxy, so routing/failover still happens through CC-Switch for the launched session.
 >
 >One exception: config items added to settings.json *after* the switch get auto-loaded into the old session — to be safe, start a fresh `ccs` session after switching.
 

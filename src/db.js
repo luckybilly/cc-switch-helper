@@ -6,6 +6,7 @@ const os = require('os');
 const initSqlJs = require('sql.js');
 
 const DB_PATH = path.join(os.homedir(), '.cc-switch', 'cc-switch.db');
+const CLAUDE_SETTINGS_PATH = path.join(os.homedir(), '.claude', 'settings.json');
 
 const SQL_QUERY = `
   SELECT name, settings_config, meta, is_current
@@ -56,6 +57,65 @@ async function getCommonConfig() {
 }
 
 /**
+ * Read CC-Switch proxy settings for Claude.
+ * @returns {Promise<{enabled: boolean, baseUrl: string | null}>}
+ */
+async function getProxyConfig() {
+  const db = await openDb();
+  try {
+    let results;
+    try {
+      results = db.exec(
+        "SELECT proxy_enabled, enabled, listen_address, listen_port FROM proxy_config WHERE app_type = 'claude'"
+      );
+    } catch {
+      return { enabled: false, baseUrl: null };
+    }
+
+    if (!results.length || !results[0].values.length) {
+      return { enabled: false, baseUrl: null };
+    }
+
+    const [proxyEnabled, enabled, listenAddress, listenPort] = results[0].values[0];
+    const isEnabled = Number(proxyEnabled) === 1 && Number(enabled) === 1;
+    const address = normalizeProxyAddress(listenAddress || '127.0.0.1');
+    const port = listenPort || 15721;
+    return {
+      enabled: isEnabled,
+      baseUrl: isEnabled ? `http://${address}:${port}` : null,
+    };
+  } finally {
+    db.close();
+  }
+}
+
+function normalizeProxyAddress(address) {
+  const connectHost = address === '0.0.0.0'
+    ? '127.0.0.1'
+    : address === '::'
+      ? '::1'
+      : address;
+  return connectHost.includes(':') && !connectHost.startsWith('[')
+    ? `[${connectHost}]`
+    : connectHost;
+}
+
+/**
+ * Read Claude's current global settings. When CC-Switch proxy routing is enabled,
+ * CC-Switch writes ~/.claude/settings.json to point at its local proxy; reusing
+ * that env keeps ccs-launched sessions on the same route as plain `claude`.
+ * @returns {object} parsed settings (empty object if absent or invalid)
+ */
+function getClaudeSettings() {
+  if (!fs.existsSync(CLAUDE_SETTINGS_PATH)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(CLAUDE_SETTINGS_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Read all Claude providers from CC-Switch SQLite database.
  * @returns {Promise<Array<{name: string, config: object, commonConfigEnabled: boolean, isCurrent: boolean}>>}
  */
@@ -94,4 +154,11 @@ async function getProviders() {
   }
 }
 
-module.exports = { getProviders, getCommonConfig, DB_PATH };
+module.exports = {
+  getProviders,
+  getCommonConfig,
+  getProxyConfig,
+  getClaudeSettings,
+  DB_PATH,
+  CLAUDE_SETTINGS_PATH,
+};

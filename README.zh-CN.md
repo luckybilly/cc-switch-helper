@@ -36,7 +36,7 @@ CC-Switch 的 provider 配置界面：
 - **交互菜单** — 方向键选 provider，不用记名字
 - **模糊匹配** — `ccs deep` 能匹配 "DeepSeek"，`ccs mini` 匹配 "Minimax"
 - **全平台** — macOS、Linux、Windows (PowerShell / CMD / Git Bash) 都能用
-- **零配置** — 直接读 CC-Switch 的数据库，兼容已有密钥分组和中转配置
+- **零配置** — 直接读 CC-Switch 的数据库，兼容已有密钥分组、中转配置和代理路由
 - **不侵入** — 不修改 CC-Switch 本体源码，升级 CC-Switch 不影响本工具
 
 ## 前置要求
@@ -108,7 +108,8 @@ alias cc=ccs
 
 1. 从 CC-Switch 的 SQLite 数据库读 provider 列表（`~/.cc-switch/cc-switch.db`），同时读 `settings` 表里的公共配置 `common_config_claude`（hooks、statusLine、permissions、插件等）
 2. 按 CC-Switch 切换时的同样规则拼出生效配置——当 provider 的 `meta.commonConfigEnabled` 为 true（且 common 配置非空）时执行 `json_deep_merge(provider.settings_config, common_config)`，否则直接用 provider 的 `settings_config`。这是**深度递归合并**，叶子节点冲突时**以 common_config 为准**。
-3. 执行 `claude --settings <json> --dangerously-skip-permissions`
+3. 当 CC-Switch 为 Claude 开启代理路由，并且 `~/.claude/settings.json` 指向该本地代理时，复用全局配置里的 Anthropic 相关 env，让新进程和直接运行 `claude` 一样走 CC-Switch 路由。
+4. 执行 `claude --settings <json> --dangerously-skip-permissions`
 
 每个窗口拿到的是 CC-Switch 切到该 provider 时会写进 `~/.claude/settings.json` 的那份配置——开公共配置的 provider 带 hooks/插件/statusLine，关公共配置的（如 evol）只有纯 env。
 
@@ -128,6 +129,8 @@ alias cc=ccs
 
 Q：`ccs` 和 CC-Switch 原生切换冲突吗？
 >A：不冲突。`ccs` 启动时就把当时的 provider 配置（模型、API Key 等）定死给这个进程了，切默认 provider 动不了已经在跑的会话。
+>
+>当 CC-Switch 开启代理路由时，`ccs` 会固定所选 provider 的非路由配置，同时保留指向 CC-Switch 本地代理的 Anthropic env，所以该会话仍会经过 CC-Switch 做路由/故障转移。
 >
 >唯一例外是切换后新加进 settings.json 的配置项会被自动加载到老会话——为保险，切完后新开一个 `ccs` 会话最稳妥。
 

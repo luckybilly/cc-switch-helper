@@ -21,6 +21,34 @@ function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
+function routeEnvKey(key) {
+  return key === 'ANTHROPIC_API_KEY' ||
+    key === 'ANTHROPIC_AUTH_TOKEN' ||
+    key === 'ANTHROPIC_BASE_URL';
+}
+
+function applyProxyRouteEnv(settings, proxyConfig, routeSettings) {
+  if (!proxyConfig?.enabled || !routeSettings?.env) {
+    return settings;
+  }
+
+  const routeEnv = routeSettings.env;
+  if (routeEnv.ANTHROPIC_BASE_URL !== proxyConfig.baseUrl) {
+    return settings;
+  }
+
+  const result = cloneJson(settings);
+  result.env = isPlainObject(result.env) ? result.env : {};
+
+  for (const [key, value] of Object.entries(routeEnv)) {
+    if (routeEnvKey(key)) {
+      result.env[key] = value;
+    }
+  }
+
+  return result;
+}
+
 /**
  * Mirror cc-switch's `json_deep_merge(target, source)` exactly
  * (src-tauri/src/services/provider/live.rs).
@@ -63,15 +91,20 @@ function jsonDeepMerge(target, source) {
  * @param {object} commonConfig - parsed common_config_claude
  * @param {object} providerConfig - parsed settings_config from CC-Switch
  * @param {boolean} commonConfigEnabled - provider's meta.commonConfigEnabled
+ * @param {object} [proxyConfig] - CC-Switch proxy routing config
+ * @param {object} [routeSettings] - current ~/.claude/settings.json produced by CC-Switch proxy
  * @returns {string} effective settings as compact JSON string
  */
-function buildSettings(commonConfig, providerConfig, commonConfigEnabled) {
+function buildSettings(commonConfig, providerConfig, commonConfigEnabled, proxyConfig, routeSettings) {
   const commonIsEmpty = !commonConfig || Object.keys(commonConfig).length === 0;
+  let result;
   if (!commonConfigEnabled || commonIsEmpty) {
-    return JSON.stringify(providerConfig);
+    result = cloneJson(providerConfig);
+  } else {
+    result = cloneJson(providerConfig);
+    jsonDeepMerge(result, commonConfig);
   }
-  const result = cloneJson(providerConfig);
-  jsonDeepMerge(result, commonConfig);
+  result = applyProxyRouteEnv(result, proxyConfig, routeSettings);
   return JSON.stringify(result);
 }
 
@@ -88,7 +121,13 @@ function buildSettings(commonConfig, providerConfig, commonConfigEnabled) {
  * @returns {Promise<number>} exit code
  */
 function launch(providerName, providerConfig, commonConfigEnabled, commonConfig, extraArgs = [], opts = {}) {
-  const settingsJson = buildSettings(commonConfig, providerConfig, commonConfigEnabled);
+  const settingsJson = buildSettings(
+    commonConfig,
+    providerConfig,
+    commonConfigEnabled,
+    opts.proxyConfig,
+    opts.routeSettings
+  );
 
   const cmd = getClaudeCmd();
   const args = ['--settings', settingsJson];
