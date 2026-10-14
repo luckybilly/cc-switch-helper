@@ -48,10 +48,16 @@ CC-Switch 的 provider 配置界面：
 ## 安装
 
 ```bash
-npm install -g luckybilly/cc-switch-helper
+npm install -g cc-switch-helper
 ```
 
 装完之后全局就有 `ccs` 命令了。
+
+想尝鲜未发布的开发版？直接从 GitHub 安装：
+
+```bash
+npm install -g luckybilly/cc-switch-helper
+```
 
 ## 用法
 

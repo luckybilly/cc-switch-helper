@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Launching claude on Windows no longer mangles the inline settings JSON**
+  (issue #5). The npm `.cmd` shim forwards arguments with `%*`, and cmd.exe
+  strips/re-parses quoting at every level — so `claude --settings '<json>'`
+  arrived broken ("系统找不到指定的路径", exit 255). `cross-spawn` (0.3.1) fixed
+  the outer `spawn EINVAL` but cannot survive the shim's inner `%*`
+  re-expansion. On Windows, `ccs` now resolves claude's real entry point —
+  the native `claude.exe` (npm package ≥ 2.1 or native installer) or
+  `node.exe` + `cli.js` (npm package ≤ 2.0) — and spawns it directly,
+  bypassing cmd.exe entirely. Direct PE spawns pass arguments through
+  CreateProcess with standard quoting rules that round-trip embedded quotes
+  and metacharacters intact, so provider secrets still never touch the disk.
+  If no direct entry can be resolved (unknown shim format and unknown package
+  layout), `ccs` falls back to a temporary settings file (mode 600, deleted
+  on exit) and prints a warning asking for a bug report.
+
+### Changed
+
+- READMEs: install from the npm registry (`npm install -g cc-switch-helper`)
+  is now the primary method; the GitHub spec is documented as the
+  development-channel alternative.
+
 ## [0.4.0] - 2026-10-14
 
 ### Fixed
