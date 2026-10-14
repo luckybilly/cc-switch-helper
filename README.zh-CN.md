@@ -43,7 +43,7 @@ CC-Switch 的 provider 配置界面：
 
 1. 装了 [CC-Switch](https://github.com/farion1231/cc-switch)，并且至少配好一个 Claude provider
 2. 装了 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
-3. [Node.js](https://nodejs.org/) ≥ 18
+3. [Node.js](https://nodejs.org/) ≥ 22.22
 
 ## 安装
 
@@ -123,6 +123,8 @@ alias cc=ccs
 | Windows | PowerShell | ✅ |
 | Windows | CMD | ✅ |
 | Windows | Git Bash | ✅ |
+
+支持的 CPU 架构：x64 和 arm64。
 
 ## 常见问题
 

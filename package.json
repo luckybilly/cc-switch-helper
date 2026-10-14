@@ -6,15 +6,19 @@
     "ccs": "src/cli.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.22"
   },
   "os": [
     "darwin",
     "linux",
     "win32"
   ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "keywords": [
     "claude",
@@ -30,8 +34,8 @@
     "url": "https://github.com/luckybilly/cc-switch-helper.git"
   },
   "dependencies": {
+    "better-sqlite3": "^13.0.2",
     "cross-spawn": "^7.0.6",
-    "prompts": "^2.4.2",
-    "sql.js": "^1.11.0"
+    "prompts": "^2.4.2"
   }
 }

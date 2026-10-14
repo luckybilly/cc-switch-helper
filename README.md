@@ -43,7 +43,7 @@ CC-Switch provider configuration panel:
 
 1. [CC-Switch](https://github.com/farion1231/cc-switch) installed with at least one Claude provider configured
 2. [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI installed
-3. [Node.js](https://nodejs.org/) ≥ 18
+3. [Node.js](https://nodejs.org/) ≥ 22.22
 
 ## Install
 
@@ -123,6 +123,8 @@ Each window gets exactly what CC-Switch would write to `~/.claude/settings.json`
 | Windows | PowerShell | ✅ |
 | Windows | CMD | ✅ |
 | Windows | Git Bash | ✅ |
+
+Supported CPU architectures: x64 and arm64.
 
 ## FAQ
 
