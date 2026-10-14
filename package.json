@@ -5,6 +5,14 @@
   "bin": {
     "ccs": "src/cli.js"
   },
+  "files": [
+    "src",
+    "test",
+    "CHANGELOG.md",
+    "cc-switch.png",
+    "demo.gif",
+    "select.png"
+  ],
   "engines": {
     "node": ">=22.22"
   },
