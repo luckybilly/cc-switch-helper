@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-10-14
 
 ### Fixed
 
@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Require Node.js 22.22 or newer and an x64 or arm64 CPU, and use
   `better-sqlite3` for path-based, WAL-aware database access.
+- Exit with a clear upgrade message instead of a native segfault when run on
+  Node.js older than 22.22.
 
 ## [0.3.1] - 2026-07-10
 

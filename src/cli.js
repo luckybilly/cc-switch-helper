@@ -1,5 +1,19 @@
 #!/usr/bin/env node
 
+// Guard: better-sqlite3 v13 is built for Node-API 10 and HARD-SEGFAULTS at
+// binding load on Node < 22.14 (WiseLibs/better-sqlite3#1514) — before any
+// JS error handling can run. Fail with an actionable message first.
+{
+  const [major, minor] = process.versions.node.split('.').map(Number);
+  if (major < 22 || (major === 22 && minor < 22)) {
+    console.error(
+      `ccs requires Node.js >= 22.22 (you are running ${process.versions.node}).\n` +
+      'Please upgrade Node.js: https://nodejs.org/'
+    );
+    process.exit(1);
+  }
+}
+
 const { getProviders, getCommonConfig } = require('./db');
 const { launch } = require('./launcher');
 const { version } = require('../package.json');
