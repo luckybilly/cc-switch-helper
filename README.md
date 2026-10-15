@@ -48,10 +48,16 @@ CC-Switch provider configuration panel:
 ## Install
 
 ```bash
-npm install -g luckybilly/cc-switch-helper
+npm install -g cc-switch-helper
 ```
 
 This registers the `ccs` command globally.
+
+Prefer living on the edge? Install the unreleased development version straight from GitHub:
+
+```bash
+npm install -g luckybilly/cc-switch-helper
+```
 
 ## Usage
 
