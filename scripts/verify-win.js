@@ -289,11 +289,27 @@ if (HAS_FIX && crossSpawn) {
 
 banner('Part 3  Real claude check (skipped when claude is not installed)');
 if (whereHits.length && HAS_FIX) {
-  const entry = launcher.resolveClaudeEntry(process.env);
+  // Raw diagnostics: show exactly what the resolver's own eyes see, so a
+  // failure pinpoints the broken stage (where.exe vs parsing vs file probe).
+  try {
+    const rawWhere = require('child_process')
+      .execFileSync('where.exe', ['claude'], { encoding: 'utf8', windowsHide: true })
+      .trim();
+    console.log('launcher-side where.exe sees: ' + JSON.stringify(rawWhere.split(/\r?\n/)));
+  } catch (e) {
+    console.log('launcher-side where.exe FAILED: ' + e.message);
+  }
+  let entry = null;
+  try {
+    entry = launcher.resolveClaudeEntry(process.env);
+  } catch (e) {
+    console.log('resolveClaudeEntry THREW: ' + (e && e.stack ? e.stack : e));
+  }
+  console.log('resolveClaudeEntry => ' + JSON.stringify(entry));
   if (!entry) {
     record('3 real resolve', 'FAIL',
       'resolver returned null on the real install — temp-file fallback would engage; ' +
-      'please send the shim content from Part 1 back');
+      'the diagnostics above show which stage broke');
   } else {
     record('3 real resolve', 'INFO', JSON.stringify(entry));
     const cmd = entry.kind === 'executable'

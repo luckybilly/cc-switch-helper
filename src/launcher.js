@@ -170,19 +170,42 @@ function runWhereClaude(env) {
 }
 
 /**
+ * Default `npm root -g` runner (returns the global node_modules dir, or null).
+ * Uses cross-spawn because npm itself is a .cmd shim on Windows. Only called
+ * as a last resort when `where claude` produced nothing resolvable — e.g.
+ * PATH stripped in exotic shells, or where.exe blocked by policy.
+ */
+function runNpmRootG(env) {
+  try {
+    const r = spawn.sync('npm', ['root', '-g'], {
+      env,
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 15000,
+    });
+    const out = (r.stdout || '').trim();
+    return out || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Resolve a direct (cmd.exe-free) entry point for claude on Windows.
  *
  * Candidate order: PATH hits from `where claude` (npm shim dirs, native
  * installer dirs), then the native installer's default location
- * %USERPROFILE%\.local\bin\claude.exe.
+ * %USERPROFILE%\.local\bin\claude.exe. Last resort when nothing resolved:
+ * ask npm for the global prefix and probe the known package layout there.
  *
  * @param {object} [env] - environment to resolve in (default process.env)
  * @param {function} [whereRunner] - injectable `where claude` (tests)
+ * @param {function} [npmRootRunner] - injectable `npm root -g` (tests)
  * @returns {{kind:'executable',exe:string}|{kind:'node-script',nodeExe:string,script:string}|null}
  *   null when no direct entry could be resolved (caller falls back to the
  *   temp-file path through the shim).
  */
-function resolveClaudeEntry(env = process.env, whereRunner = runWhereClaude) {
+function resolveClaudeEntry(env = process.env, whereRunner = runWhereClaude, npmRootRunner = runNpmRootG) {
   const candidates = [...whereRunner(env)];
   const userProfile = env.USERPROFILE || os.homedir();
   candidates.push(path.join(userProfile, '.local', 'bin', 'claude.exe'));
@@ -200,22 +223,40 @@ function resolveClaudeEntry(env = process.env, whereRunner = runWhereClaude) {
     if (!fs.existsSync(cand)) continue;
 
     const shimDir = path.dirname(cand);
-    let parsed = null;
+    const viaShim = resolveFromShimDir(shimDir, cand);
+    if (viaShim) return viaShim;
+  }
+
+  // Last resort: npm's global prefix (independent of PATH / where.exe).
+  const npmRoot = npmRootRunner(env); // <prefix>\node_modules
+  if (npmRoot) {
+    const prefix = path.dirname(npmRoot);
+    const viaNpm = resolveFromShimDir(prefix, null);
+    if (viaNpm) return viaNpm;
+  }
+  return null;
+}
+
+/** Resolve a direct entry from a shim/prefix directory: parse claude.cmd, then probe layout. */
+function resolveFromShimDir(shimDir, shimPath) {
+  let parsed = null;
+  if (shimPath) {
     try {
-      parsed = parseCmdShim(fs.readFileSync(cand, 'utf8'), shimDir);
+      parsed = parseCmdShim(fs.readFileSync(shimPath, 'utf8'), shimDir);
     } catch {
       parsed = null;
     }
-    if (!parsed || !fs.existsSync(parsed.script ?? parsed.exe)) {
-      parsed = probeKnownLayout(shimDir);
-    }
-    if (parsed) {
-      return parsed.kind === 'node-script'
-        ? { ...parsed, nodeExe: nodeForShimDir(shimDir), source: cand }
-        : { ...parsed, source: cand };
+    if (parsed && !fs.existsSync(parsed.script ?? parsed.exe)) {
+      parsed = null;
     }
   }
-  return null;
+  if (!parsed) {
+    parsed = probeKnownLayout(shimDir);
+  }
+  if (!parsed) return null;
+  return parsed.kind === 'node-script'
+    ? { ...parsed, nodeExe: nodeForShimDir(shimDir), source: shimPath || shimDir }
+    : { ...parsed, source: shimPath || shimDir };
 }
 
 // ── Launch ────────────────────────────────────────────────────────────────────

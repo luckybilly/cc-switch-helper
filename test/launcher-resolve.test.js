@@ -177,11 +177,28 @@ test('resolveClaudeEntry: a real .exe on PATH wins directly', (t) => {
 test('resolveClaudeEntry: returns null when nothing resolves (caller uses temp-file fallback)', (t) => {
   const dir = makeTree(t, { shim: '@echo off\r\nunknown %*\r\n' }); // no layout either
   const env = fakeEnv(t);
-  assert.equal(resolveClaudeEntry(env, () => [path.join(dir, 'claude.cmd')]), null);
+  const noNpm = () => null;
+  assert.equal(resolveClaudeEntry(env, () => [path.join(dir, 'claude.cmd')], noNpm), null);
   // extensionless sh-shim hits are skipped, not mistaken for executables
   const ext = path.join(dir, 'claude');
   fs.writeFileSync(ext, '#!/bin/sh\n');
-  assert.equal(resolveClaudeEntry(env, () => [ext]), null);
+  assert.equal(resolveClaudeEntry(env, () => [ext], noNpm), null);
+});
+
+test('resolveClaudeEntry: npm root -g fallback resolves when where.exe finds nothing', (t) => {
+  // Simulates a stripped-PATH shell: no where hits, but npm knows the prefix.
+  const prefix = makeTree(t, {
+    shim: null,
+    files: [path.join(PKG_REL, 'bin', 'claude.exe')],
+  });
+  const env = fakeEnv(t);
+  const entry = resolveClaudeEntry(
+    env,
+    () => [],
+    () => path.join(prefix, 'node_modules') // npm root -g returns <prefix>/node_modules
+  );
+  assert.equal(entry.kind, 'executable');
+  assert.equal(entry.exe, path.join(prefix, PKG_REL, 'bin', 'claude.exe'));
 });
 
 // ── Argument round-trip through the resolved node-script entry ──
